@@ -1,13 +1,65 @@
 import re
+import os
 import sys
 
-with open(sys.argv[1],'r',encoding='utf8') as f:
-	content=f.read()
-	
-lines=content.splitlines()
-i=1
-with open('subtitle.srt','w',encoding='utf8') as f:
-	for line in lines:
-		res=re.findall('\[(\d*?):(\d*?)\.(\d*?),(\d*?):(\d*?)\.(\d*?)\]\s*([\s\S]*)$',line)[0]
-		f.write('%s\n%s:%s:%s,%s --> %s:%s:%s,%s\n%s\n\n'%(i,int(res[0])//60,int(res[0])%60,res[1],res[2],int(res[3])//60,int(res[3])%60,res[4],res[5],res[6]))
-		i+=1
+def read_tencent_asr_file(file_path:str):
+	with open(file_path,'r',encoding='utf8') as f:
+		content=f.read()
+	lines=content.splitlines()
+	return lines
+
+def find_all_file_name(f_dir:str):
+    for root, dirs, files in os.walk(f_dir):
+        for file_name in files:
+            yield file_name
+def lrc_file_write(file_handle,cmd:int,value):
+	if cmd==0:
+		file_handle = open(value,'w',encoding='utf-8')
+	if cmd==1:
+		file_handle.close()
+	if cmd==2:
+		file_handle.write("[%s:%s.%s]%s\n"%(value[0],value[1],value[2],value[6]))
+	return file_handle
+
+def parse_asr_file(lines):
+	# 0 read file name and open file
+	# 1 close file
+	# 2 read file parse data to file
+	cmd = 0 #
+	write_file_handle=''
+	line_id=0
+	while line_id<len(lines)-1:
+		line=lines[line_id]
+
+		if cmd==0:
+			file_name_match=re.findall(R"file: (.*?)$",line)
+			file_name=file_name_match[0]
+			file_name_noextension=os.path.splitext(file_name)[0]
+			# print(file_name_noextension)
+			write_file_handle=lrc_file_write(write_file_handle,cmd,file_name_noextension)
+			cmd=2
+			line_id+=1
+		elif cmd==1:
+			write_file_handle=lrc_file_write(write_file_handle,cmd,None)
+			cmd=0
+		elif cmd==2:
+			# match_end_symbol=re.findall(R"*end*",line)
+			line_data_match=re.findall('\[(\d*?):(\d*?)\.(\d*?),(\d*?):(\d*?)\.(\d*?).*?\]  (.*?)$',line)
+			if len(line_data_match)==1:
+				line_data=line_data_match[0]
+				write_file_handle=lrc_file_write(write_file_handle,cmd,line_data)
+			else:
+				cmd=1
+				line_id+=1
+		line_id+=1
+
+def main():
+	file_dir="C:\\Users\\WDAGUtilityAccount\\Desktop\\text\\"
+	for file_name in find_all_file_name(file_dir):
+		file_path=file_dir+file_name
+		file_lines=read_tencent_asr_file(file_path)
+		parse_asr_file(file_lines)
+		print(file_path,file_lines[0])
+
+if __name__ == '__main__':
+    main()
