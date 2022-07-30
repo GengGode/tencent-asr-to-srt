@@ -2,6 +2,17 @@ import re
 import os
 import sys
 
+from sqlalchemy import false, true
+
+def int_str_2(i:int,is_cut:bool=false):
+	s=str(i)
+	len_s=len(s)
+	if len_s==1:
+		s='0'+s
+	elif len_s >2 and is_cut==true:
+		s=s[0]+s[1]
+	return s
+
 def read_tencent_asr_file(file_path:str):
 	with open(file_path,'r',encoding='utf8') as f:
 		content=f.read()
@@ -12,14 +23,14 @@ def find_all_file_name(f_dir:str):
     for root, dirs, files in os.walk(f_dir):
         for file_name in files:
             yield file_name
-			
+
 def lrc_file_write(file_handle,cmd:int,value):
 	if cmd==0:
 		file_handle = open(value,'w',encoding='utf-8')
 	if cmd==1:
 		file_handle.close()
 	if cmd==2:
-		file_handle.write("[%s:%s.%s]%s\n"%(value[0],value[1],value[2],value[6]))
+		file_handle.write("[%s:%s.%s]%s\n"%(int_str_2(value[0]),int_str_2(value[1]),int_str_2(value[2],true),value[6]))
 	return file_handle
 
 def parse_asr_file(lines):
