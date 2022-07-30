@@ -12,6 +12,7 @@ def find_all_file_name(f_dir:str):
     for root, dirs, files in os.walk(f_dir):
         for file_name in files:
             yield file_name
+			
 def lrc_file_write(file_handle,cmd:int,value):
 	if cmd==0:
 		file_handle = open(value,'w',encoding='utf-8')
@@ -63,3 +64,10 @@ def main():
 
 if __name__ == '__main__':
     main()
+else:
+	file_dir=sys.argv[0]
+	for file_name in find_all_file_name(file_dir):
+		file_path=file_dir+file_name
+		file_lines=read_tencent_asr_file(file_path)
+		parse_asr_file(file_lines)
+		print(file_path,file_lines[0])
