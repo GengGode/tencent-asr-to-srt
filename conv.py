@@ -26,7 +26,7 @@ def find_all_file_name(f_dir:str):
 
 def lrc_file_write(file_handle,cmd:int,value):
 	if cmd==0:
-		file_handle = open(value,'w',encoding='utf-8')
+		file_handle = open(value+'.lrc','w',encoding='utf-8')
 	if cmd==1:
 		file_handle.close()
 	if cmd==2:
